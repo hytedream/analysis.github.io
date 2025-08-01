@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元素觉醒：平等之路</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .panel h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,215,0,0.3);
+            padding-bottom: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+
+        .stat-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #81C784);
+            transition: width 0.3s ease;
+        }
+
+        .element-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .element-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .story-area {
+            height: 300px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .story-text {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .choice-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .choice-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .choice-btn:disabled {
+            background: rgba(100,100,100,0.5);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .inventory-item {
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .region-info {
+            background: rgba(138, 43, 226, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #8a2be2;
+        }
+
+        .magic-disabled {
+            background: rgba(255, 0, 0, 0.2);
+            border-left-color: #ff0000;
+        }
+
+        .level-display {
+            font-size: 1.2em;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .save-load {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .save-btn, .load-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: 1fr;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">元素觉醒：平等之路</h1>
+            <p>在这个魔法与科技并存的世界中，你将踏上追求平等的征程</p>
+        </div>
+
+        <div class="game-board">
+            <!-- 左侧面板：角色属性 -->
+            <div class="panel">
+                <h3>角色属性</h3>
+                <div class="level-display">等级: <span id="level">1</span></div>
+                
+                <div class="stat-item">
+                    <span>生命值:</span>
+                    <span><span id="hp">100</span>/<span id="maxHp">100</span></span>
+                </div>
+                <div class="stat-bar"><div class="stat-fill" id="hpBar" style="width: 100%"></div></div>
+
+                <div class="stat-item">
+                    <span>魔法值:</span>
+                    <span><span id="mp">50</span>/<span id="maxMp">50</span></span>
+                </div>
+                <div class="stat-bar"><div class="stat-fill" id="mpBar" style="width: 100%; background: linear-gradient(90deg, #3498db, #74b9ff)"></div></div>
+
+                <div class="stat-item">
+                    <span>力量:</span>
+                    <span id="strength">10</span>
+                </div>
+
+                <div class="stat-item">
+                    <span>速度:</span>
+                    <span id="speed">10</span>
+                </div>
+
+                <div class="stat-item">
+                    <span>学识:</span>
+                    <span id="knowledge">10</span>
+                </div>
+
+                <div class="stat-item">
+                    <span>天赋:</span>
+                    <span id="talent">10</span>
+                </div>
+
+                <div class="stat-item">
+                    <span>运气:</span>
+                    <span id="luck">10</span>
+                </div>
+
+                <div class="stat-item">
+                    <span>经验值:</span>
+                    <span><span id="exp">0</span>/<span id="expNeeded">100</span></span>
+                </div>
+                <div class="stat-bar"><div class="stat-fill" id="expBar" style="width: 0%; background: linear-gradient(90deg, #f39c12, #f1c40f)"></div></div>
+
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="trainAttribute()">训练属性</button>
+                    <button class="action-btn" onclick="restoreHealth()">休息恢复</button>
+                    <button class="action-btn" onclick="openCrafting()">制作装备</button>
+                    <button class="action-btn" onclick="openMagicLearning()">学习魔法</button>
+                </div>
+            </div>
+
+            <!-- 中间面板：游戏主界面 -->
+            <div class="panel">
+                <h3>冒险日志</h3>
+                
+                <div class="region-info" id="regionInfo">
+                    <strong>当前区域：</strong><span id="currentRegion">新手村</span><br>
+                    <strong>区域特效：</strong><span id="regionEffect">无特殊效果</span>
+                </div>
+
+                <div class="story-area" id="storyArea">
+                    <div class="story-text">
+                        欢迎来到元素觉醒的世界！在这个充满魔法与科技的时代，强者统治着一切，而你，作为一个普通人的后代，梦想着建立一个人人平等的世界。
+                        <br><br>
+                        你站在新手村的中央广场，周围是茅草屋和简陋的铁匠铺。远处的天空中，三颗抑魔卫星正围绕着赤道缓缓运转，它们的光芒让这里的魔法变得微弱。
+                        <br><br>
+                        你的旅程从这里开始...
+                    </div>
+                </div>
+
+                <div class="choice-buttons" id="choiceButtons">
+                    <button class="choice-btn" onclick="exploreVillage()">探索村庄</button>
+                    <button class="choice-btn" onclick="visitBlacksmith()">拜访铁匠</button>
+                    <button class="choice-btn" onclick="talkToElder()">与村长对话</button>
+                    <button class="choice-btn" onclick="leaveVillage()">离开村庄</button>
+                </div>
+            </div>
+
+            <!-- 右侧面板：元素与装备 -->
+            <div class="panel">
+                <h3>掌控元素</h3>
+                <div class="element-grid" id="elementGrid">
+                    <div class="element-item">
+                        <div>火元素</div>
+                        <div>掌控度: <span id="fireElement">0</span>%</div>
+                    </div>
+                    <div class="element-item">
+                        <div>水元素</div>
+                        <div>掌控度: <span id="waterElement">0</span>%</div>
+                    </div>
+                    <div class="element-item">
+                        <div>风元素</div>
+                        <div>掌控度: <span id="windElement">0</span>%</div>
+                    </div>
+                    <div class="element-item">
+                        <div>土元素</div>
+                        <div>掌控度: <span id="earthElement">0</span>%</div>
+                    </div>
+                    <div class="element-item">
+                        <div>光元素</div>
+                        <div>掌控度: <span id="lightElement">0</span>%</div>
+                    </div>
+                    <div class="element-item">
+                        <div>暗元素</div>
+                        <div>掌控度: <span id="darkElement">0</span>%</div>
+                    </div>
+                    <div class="element-item">
+                        <div>禁魔元素</div>
+                        <div>掌控度: <span id="antiMagicElement">0</span>%</div>
+                    </div>
+                    <div class="element-item">
+                        <div>科技元素</div>
+                        <div>掌控度: <span id="techElement">5</span>%</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 20px;">装备背包</h3>
+                <div class="inventory-grid" id="inventoryGrid">
+                    <div class="inventory-item">
+                        <div><strong>破旧短剑</strong></div>
+                        <div>攻击力: +5</div>
+                    </div>
+                    <div class="inventory-item">
+                        <div><strong>布衣</strong></div>
+                        <div>防御力: +2</div>
+                    </div>
+                    <div class="inventory-item">
+                        <div><strong>基础科技装置</strong></div>
+                        <div>科技加成: +10%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="save-load">
+            <button class="save-btn" onclick="saveGame()">保存游戏</button>
+            <button class="load-btn" onclick="loadGame()">读取存档</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态对象
+        let gameState = {
+            level: 1,
+            hp: 100,
+            maxHp: 100,
+            mp: 50,
+            maxMp: 50,
+            strength: 10,
+            speed: 10,
+            knowledge: 10,
+            talent: 10,
+            luck: 10,
+            exp: 0,
+            expNeeded: 100,
+            currentRegion: "新手村",
+            regionEffect: "无特殊效果",
+            magicDisabled: false,
+            elements: {
+                fire: 0,
+                water: 0,
+                wind: 0,
+                earth: 0,
+                light: 0,
+                dark: 0,
+                antiMagic: 0,
+                tech: 5
+            },
+            inventory: [
+                {name: "破旧短剑", type: "weapon", attack: 5},
+                {name: "布衣", type: "armor", defense: 2},
+                {name: "基础科技装置", type: "tech", techBonus: 10}
+            ],
+            storyFlags: {
+                talkedToElder: false,
+                visitedBlacksmith: false,
+                exploredVillage: false,
+                leftVillage: false
+            }
+        };
+
+        // 更新UI显示
+        function updateUI() {
+            document.getElementById('level').textContent = gameState.level;
+            document.getElementById('hp').textContent = gameState.hp;
+            document.getElementById('maxHp').textContent = gameState.maxHp;
+            document.getElementById('mp').textContent = gameState.mp;
+            document.getElementById('maxMp').textContent = gameState.maxMp;
+            document.getElementById('strength').textContent = gameState.strength;
+            document.getElementById('speed').textContent = gameState.speed;
+            document.getElementById('knowledge').textContent = gameState.knowledge;
+            document.getElementById('talent').textContent = gameState.talent;
+            document.getElementById('luck').textContent = gameState.luck;
+            document.getElementById('exp').textContent = gameState.exp;
+            document.getElementById('expNeeded').textContent = gameState.expNeeded;
+            
+            // 更新进度条
+            document.getElementById('hpBar').style.width = (gameState.hp / gameState.maxHp * 100) + '%';
+            document.getElementById('mpBar').style.width = (gameState.mp / gameState.maxMp * 100) + '%';
+            document.getElementById('expBar').style.width = (gameState.exp / gameState.expNeeded * 100) + '%';
+            
+            // 更新区域信息
+            document.getElementById('currentRegion').textContent = gameState.currentRegion;
+            document.getElementById('regionEffect').textContent = gameState.regionEffect;
+            
+            const regionInfo = document.getElementById('regionInfo');
+            if (gameState.magicDisabled) {
+                regionInfo.classList.add('magic-disabled');
+            } else {
+                regionInfo.classList.remove('magic-disabled');
+            }
+            
+            // 更新元素掌控度
+            Object.keys(gameState.elements).forEach(element => {
+                const elementId = element === 'antiMagic' ? 'antiMagicElement' : 
+                                element === 'tech' ? 'techElement' : element + 'Element';
+                const elementSpan = document.getElementById(elementId);
+                if (elementSpan) {
+                    elementSpan.textContent = gameState.elements[element];
+                }
+            });
+        }
+
+        // 添加经验值
+        function gainExp(amount) {
+            gameState.exp += amount;
+            if (gameState.exp >= gameState.expNeeded) {
+                levelUp();
+            }
+            updateUI();
+        }
+
+        // 升级
+        function levelUp() {
+            gameState.level++;
+            gameState.exp = 0;
+            gameState.expNeeded = Math.floor(gameState.expNeeded * 1.5);
+            gameState.maxHp += 20;
+            gameState.hp = gameState.maxHp;
+            gameState.maxMp += 10;
+            gameState.mp = gameState.maxMp;
+            
+            // 随机提升一个属性
+            const attributes = ['strength', 'speed', 'knowledge', 'talent', 'luck'];
+            const randomAttr = attributes[Math.floor(Math.random() * attributes.length)];
+            gameState[randomAttr] += 2;
+            
+            addStoryText(`🎉 恭喜升级！等级提升至 ${gameState.level}，${randomAttr} +2！`, 'gold');
+        }
+
+        // 添加故事文本
+        function addStoryText(text, color = 'white') {
+            const storyArea = document.getElementById('storyArea');
+            const newText = document.createElement('div');
+            newText.className = 'story-text';
+            newText.style.color = color;
+            newText.innerHTML = text;
+            storyArea.appendChild(newText);
+            storyArea.scrollTop = storyArea.scrollHeight;
+        }
+
+        // 清空选择按钮
+        function clearChoices() {
+            document.getElementById('choiceButtons').innerHTML = '';
+        }
+
+        // 添加选择按钮
+        function addChoice(text, callback) {
+            const choiceButtons = document.getElementById('choiceButtons');
+            const button = document.createElement('button');
+            button.className = 'choice-btn';
+            button.textContent = text;
+            button.onclick = callback;
+            choiceButtons.appendChild(button);
+        }
+
+        // 游戏场景函数
+        function exploreVillage() {
+            if (!gameState.storyFlags.exploredVillage) {
+                addStoryText('你在村庄中漫步，发现了一个隐秘的科技研究所。里面的研究员正在秘密研究反魔法技术。');
+                addStoryText('研究员："年轻人，你愿意帮助我们吗？我们正在寻找能够对抗魔法压迫的方法。"');
+                gameState.storyFlags.exploredVillage = true;
+                gameState.elements.tech += 5;
+                gainExp(20);
+                
+                clearChoices();
+                addChoice('答应帮助研究员', () => {
+                    addStoryText('你决定帮助研究员。他们教给你一些基础的科技知识。', 'lightgreen');
+                    gameState.knowledge += 3;
+                    gameState.elements.tech += 10;
+                    gainExp(30);
+                    updateUI();
+                    returnToVillage();
+                });
+                addChoice('礼貌拒绝', () => {
+                    addStoryText('你礼貌地拒绝了研究员的请求，但他们还是给了你一些有用的信息。');
+                    gameState.knowledge += 1;
+                    gainExp(10);
+                    updateUI();
+                    returnToVillage();
+                });
+            } else {
+                addStoryText('你再次来到科技研究所，研究员们正在忙碌地工作。');
+                returnToVillage();
+            }
+        }
+
+        function visitBlacksmith() {
+            if (!gameState.storyFlags.visitedBlacksmith) {
+                addStoryText('铁匠是一个粗犷的大汉，他的工坊里摆满了各种武器和工具。');
+                addStoryText('铁匠："小伙子，想要好装备吗？我这里有最好的铁器，虽然比不上那些魔法装备，但胜在实用！"');
+                gameState.storyFlags.visitedBlacksmith = true;
+                
+                clearChoices();
+                addChoice('学习锻造技能', () => {
+                    addStoryText('铁匠教给你基础的锻造技能，你的力量得到了提升。', 'lightblue');
+                    gameState.strength += 5;
+                    gameState.knowledge += 2;
+                    gainExp(25);
+                    updateUI();
+                    returnToVillage();
+                });
+                addChoice('购买装备', () => {
+                    addStoryText('你购买了一把铁剑，攻击力大幅提升！', 'gold');
+                    gameState.inventory.push({name: "铁剑", type: "weapon", attack: 15});
+                    gainExp(15);
+                    updateUI();
+                    returnToVillage();
+                });
+                addChoice('只是看看', () => {
+                    addStoryText('你四处看了看，对各种工具有了更深的了解。');
+                    gameState.knowledge += 1;
+                    gainExp(5);
+                    updateUI();
+                    returnToVillage();
+                });
+            } else {
+                addStoryText('铁匠热情地欢迎你的再次到来。');
+                returnToVillage();
+            }
+        }
+
+        function talkToElder() {
+            if (!gameState.storyFlags.talkedToElder) {
+                addStoryText('村长是一位年迈的智者，他的眼中闪烁着智慧的光芒。');
+                addStoryText('村长："年轻人，我看出你心中怀着远大的理想。这个世界确实需要改变，但道路艰险。"');
+                addStoryText('村长："禁魔区是我们的希望，那里的人们不受魔法贵族的压迫。但要到达那里，你需要更强的力量。"');
+                gameState.storyFlags.talkedToElder = true;
+                gameState.knowledge += 5;
+                gainExp(30);
+                
+                clearChoices();
+                addChoice('询问禁魔区的详情', () => {
+                    addStoryText('村长详细地向你讲述了禁魔区的情况。三颗抑魔卫星的光芒让那里成为了平等的乐土。', 'lightgreen');
+                    gameState.elements.antiMagic += 5;
+                    gameState.knowledge += 3;
+                    gainExp(20);
+                    updateUI();
+                    returnToVillage();
+                });
+                addChoice('请求指导', () => {
+                    addStoryText('村长传授给你一些古老的智慧和基础的元素感知能力。', 'lightblue');
+                    gameState.talent += 3;
+                    gameState.elements.light += 5;
+                    gameState.elements.dark += 5;
+                    gainExp(25);
+                    updateUI();
+                    returnToVillage();
+                });
+            } else {
+                addStoryText('村长慈祥地看着你："年轻人，准备好踏上更危险的旅程了吗？"');
+                returnToVillage();
+            }
+        }
+
+        function leaveVillage() {
+            addStoryText('你决定离开新手村，踏上前往更广阔世界的旅程。');
+            addStoryText('前方有三条道路：通往魔法森林的小径、前往禁魔区的大道，以及神秘的地下通道。');
+            
+            clearChoices();
+            addChoice('前往魔法森林', () => {
+                changeRegion('魔法森林', '魔法元素浓郁，所有魔法效果+50%', false);
+                exploreForest();
+            });
+            addChoice('前往禁魔区边境', () => {
+                changeRegion('禁魔区边境', '受抑魔卫星影响，魔法效果-80%', true);
+                exploreAntiMagicZone();
+            });
+            addChoice('探索地下通道', () => {
+                changeRegion('地下遗迹', '古老的魔法波动，随机元素效果', false);
+                exploreUnderground();
+            });
+            addChoice('返回村庄', returnToVillage);
+        }
+
+        function returnToVillage() {
+            changeRegion('新手村', '无特殊效果', false);
+            addStoryText('你回到了熟悉的新手村。');
+            
+            clearChoices();
+            addChoice('探索村庄', exploreVillage);
+            addChoice('拜访铁匠', visitBlacksmith);
+            addChoice('与村长对话', talkToElder);
+            addChoice('离开村庄', leaveVillage);
+        }
+
+        function changeRegion(region, effect, magicDisabled) {
+            gameState.currentRegion = region;
+            gameState.regionEffect = effect;
+            gameState.magicDisabled = magicDisabled;
+            updateUI();
+        }
+
+        function exploreForest() {
+            addStoryText('你进入了魔法森林，空气中充满了各种元素的气息。古老的树木散发着微弱的光芒。');
+            
+            const randomEvent = Math.random();
+            if (randomEvent < 0.3) {
+                addStoryText('你遇到了一只火元素精灵！它愿意教授你火元素的奥秘。', 'orange');
+                gameState.elements.fire += 15;
+                gainExp(40);
+            } else if (randomEvent < 0.6) {
+                addStoryText('你发现了一处水晶矿脉，从中感受到了土元素和风元素的共鸣。', 'lightblue');
+                gameState.elements.earth += 10;
+                gameState.elements.wind += 10;
+                gainExp(35);
+            } else {
+                addStoryText('你与一群魔法植物战斗，虽然艰难，但获得了宝贵的经验。', 'lightgreen');
+                if (gameState.hp > 20) {
+                    gameState.hp -= 20;
+                }
+                gameState.strength += 2;
+                gainExp(50);
+            }
+            
+            clearChoices();
+            addChoice('深入森林', exploreDeepForest);
+            addChoice('寻找元素之源', findElementalSource);
+            addChoice('返回村庄', returnToVillage);
+            
+            updateUI();
+        }
+
+        function exploreDeepForest() {
+            addStoryText('你深入森林深处，发现了一座被遗弃的魔法塔。');
+            addStoryText('塔中传来神秘的魔法波动，你感觉到了光暗元素的强烈冲突。');
+            
+            clearChoices();
+            addChoice('进入魔法塔', () => {
+                addStoryText('魔法塔内部充满了复杂的魔法阵。你小心地研究着这些古老的符文。', 'purple');
+                gameState.knowledge += 4;
+                gameState.elements.light += 8;
+                gameState.elements.dark += 8;
+                gainExp(60);
+                updateUI();
+                exploreForest();
+            });
+            addChoice('绕过魔法塔', () => {
+                addStoryText('你谨慎地绕过了魔法塔，在周围发现了一些有用的魔法材料。');
+                gameState.luck += 2;
+                gainExp(30);
+                updateUI();
+                exploreForest();
+            });
+        }
+
+        function findElementalSource() {
+            addStoryText('你寻找着元素之源，这需要极高的感知能力...');
+            
+            if (gameState.talent >= 15) {
+                addStoryText('凭借着出色的天赋，你找到了一处元素汇聚点！各种元素在这里和谐共存。', 'gold');
+                gameState.elements.fire += 12;
+                gameState.elements.water += 12;
+                gameState.elements.wind += 12;
+                gameState.elements.earth += 12;
+                gainExp(80);
+            } else {
+                addStoryText('你的天赋还不够，只能感受到微弱的元素波动。', 'orange');
+                gameState.elements.fire += 5;
+                gameState.elements.water += 5;
+                gainExp(40);
+            }
+            
+            clearChoices();
+            addChoice('继续探索森林', exploreForest);
+            addChoice('返回村庄', returnToVillage);
+            updateUI();
+        }
+
+        function exploreAntiMagicZone() {
+            addStoryText('你来到了禁魔区的边境。这里的建筑更加现代化，科技设备随处可见。');
+            addStoryText('抑魔卫星的光芒让魔法使用者们避而远之，这里成为了普通人的聚集地。');
+            
+            const randomEvent = Math.random();
+            if (randomEvent < 0.4) {
+                addStoryText('你遇到了一群科技研究者，他们正在研究如何扩展禁魔区的范围。', 'cyan');
+                gameState.elements.tech += 20;
+                gameState.elements.antiMagic += 10;
+                gameState.knowledge += 3;
+                gainExp(50);
+            } else if (randomEvent < 0.7) {
+                addStoryText('你帮助当地居民修理科技设备，学到了很多实用技能。', 'lightgreen');
+                gameState.elements.tech += 15;
+                gameState.speed += 2;
+                gainExp(40);
+            } else {
+                addStoryText('你发现了一处隐秘的抑魔元素矿脉，这是非常珍贵的发现！', 'silver');
+                gameState.elements.antiMagic += 25;
+                gainExp(70);
+            }
+            
+            clearChoices();
+            addChoice('加入科技研究', joinTechResearch);
+            addChoice('探索禁魔区深处', exploreDeepAntiMagic);
+            addChoice('返回村庄', returnToVillage);
+            updateUI();
+        }
+
+        function joinTechResearch() {
+            addStoryText('你加入了科技研究团队。他们正在开发一种能够中和魔法的装置。');
+            addStoryText('首席研究员："这项技术如果成功，将彻底改变世界的格局！"');
+            
+            clearChoices();
+            addChoice('协助核心研究', () => {
+                if (gameState.knowledge >= 20) {
+                    addStoryText('凭借你的学识，研究取得了重大突破！', 'gold');
+                    gameState.elements.tech += 30;
+                    gameState.elements.antiMagic += 20;
+                    gameState.inventory.push({name: "反魔法装置原型", type: "tech", antiMagicBonus: 50});
+                    gainExp(100);
+                } else {
+                    addStoryText('你的知识还不够，但也学到了很多有用的东西。', 'lightblue');
+                    gameState.elements.tech += 15;
+                    gameState.knowledge += 4;
+                    gainExp(60);
+                }
+                updateUI();
+                exploreAntiMagicZone();
+            });
+            addChoice('负责外围工作', () => {
+                addStoryText('你负责设备维护和数据收集，虽然不是核心工作，但也很重要。');
+                gameState.elements.tech += 10;
+                gameState.speed += 1;
+                gainExp(35);
+                updateUI();
+                exploreAntiMagicZone();
+            });
+        }
+
+        function exploreDeepAntiMagic() {
+            addStoryText('你深入禁魔区的中心地带，这里的抑魔效果最为强烈。');
+            addStoryText('你看到了三颗抑魔卫星投下的光束汇聚点，一种神秘的能量在此处脉动。');
+            
+            if (gameState.elements.antiMagic >= 20) {
+                addStoryText('你已经积累了足够的抑魔元素理解，开始尝试与这股力量共鸣...', 'silver');
+                addStoryText('突然，你感受到了前所未有的力量涌入体内！你获得了控制抑魔元素的能力！', 'gold');
+                gameState.elements.antiMagic += 40;
+                gameState.talent += 5;
+                gainExp(150);
+            } else {
+                addStoryText('这股力量太过强大，你还无法理解其本质。', 'orange');
+                gameState.elements.antiMagic += 10;
+                gainExp(50);
+            }
+            
+            clearChoices();
+            addChoice('继续研究抑魔力量', () => {
+                addStoryText('你花费更多时间研究这股神秘的力量...');
+                gameState.elements.antiMagic += 15;
+                gameState.knowledge += 3;
+                gainExp(60);
+                updateUI();
+                exploreAntiMagicZone();
+            });
+            addChoice('返回边境', exploreAntiMagicZone);
+            updateUI();
+        }
+
+        function exploreUnderground() {
+            addStoryText('你进入了神秘的地下通道。这里似乎是远古文明的遗迹。');
+            addStoryText('墙壁上刻着古老的符文，散发着微弱而复杂的魔法波动。');
+            
+            const randomEvent = Math.random();
+            if (randomEvent < 0.3) {
+                addStoryText('你发现了一个古老的魔法装置，它似乎能够融合不同的元素！', 'purple');
+                gameState.elements.fire += 8;
+                gameState.elements.water += 8;
+                addStoryText('火与水的力量在你体内融合，形成了蒸汽元素的雏形！', 'lightblue');
+                gainExp(70);
+            } else if (randomEvent < 0.6) {
+                addStoryText('你遇到了古代守护者的灵魂，它传授给你光暗平衡的奥秘。', 'gray');
+                gameState.elements.light += 15;
+                gameState.elements.dark += 15;
+                gameState.talent += 3;
+                gainExp(90);
+            } else {
+                addStoryText('你触发了一个古老的陷阱，但也因此发现了隐藏的宝藏！', 'red');
+                if (gameState.hp > 30) {
+                    gameState.hp -= 30;
+                }
+                gameState.inventory.push({name: "古代护符", type: "accessory", allElementsBonus: 10});
+                gainExp(60);
+            }
+            
+            clearChoices();
+            addChoice('深入遗迹', exploreDeepRuins);
+            addChoice('寻找元素融合装置', findFusionDevice);
+            addChoice('返回地面', returnToVillage);
+            updateUI();
+        }
+
+        function exploreDeepRuins() {
+            addStoryText('你继续深入遗迹，发现了一座巨大的地下神殿。');
+            addStoryText('神殿中央有一个复杂的魔法阵，似乎是用来进行元素融合实验的。');
+            
+            if (gameState.knowledge >= 25) {
+                addStoryText('凭借你的渊博学识，你成功激活了古老的魔法阵！', 'gold');
+                addStoryText('魔法阵释放出强大的能量，你学会了元素融合的基础理论！', 'rainbow');
+                gameState.knowledge += 6;
+                Object.keys(gameState.elements).forEach(element => {
+                    gameState.elements[element] += 5;
+                });
+                gainExp(120);
+            } else {
+                addStoryText('魔法阵太过复杂，你只能理解其中的一小部分。', 'orange');
+                gameState.knowledge += 3;
+                gainExp(50);
+            }
+            
+            clearChoices();
+            addChoice('继续研究魔法阵', () => {
+                addStoryText('你花费更多时间研究古老的魔法知识...');
+                gameState.knowledge += 4;
+                gameState.elements.light += 10;
+                gameState.elements.dark += 10;
+                gainExp(70);
+                updateUI();
+                exploreUnderground();
+            });
+            addChoice('返回上层', exploreUnderground);
+            updateUI();
+        }
+
+        function findFusionDevice() {
+            addStoryText('你在遗迹中搜寻元素融合装置的线索...');
+            
+            if (gameState.luck >= 15) {
+                addStoryText('幸运的是，你找到了一台还能运作的古代融合装置！', 'gold');
+                addStoryText('装置说明：可以将两种基础元素融合成新的复合元素。');
+                
+                clearChoices();
+                addChoice('尝试融合火与水', () => {
+                    if (gameState.elements.fire >= 10 && gameState.elements.water >= 10) {
+                        addStoryText('火与水的力量融合，诞生了蒸汽元素！', 'lightblue');
+                        gameState.elements.fire -= 10;
+                        gameState.elements.water -= 10;
+                        gameState.elements.steam = (gameState.elements.steam || 0) + 20;
+                        gainExp(80);
+                    } else {
+                        addStoryText('你的火元素或水元素掌控度不够。', 'red');
+                    }
+                    updateUI();
+                    exploreUnderground();
+                });
+                addChoice('尝试融合光与暗', () => {
+                    if (gameState.elements.light >= 15 && gameState.elements.dark >= 15) {
+                        addStoryText('光与暗达成平衡，形成了混沌元素！', 'gray');
+                        gameState.elements.light -= 15;
+                        gameState.elements.dark -= 15;
+                        gameState.elements.chaos = (gameState.elements.chaos || 0) + 30;
+                        gainExp(100);
+                    } else {
+                        addStoryText('你的光元素或暗元素掌控度不够。', 'red');
+                    }
+                    updateUI();
+                    exploreUnderground();
+                });
+                addChoice('暂时不使用', exploreUnderground);
+            } else {
+                addStoryText('你没有找到可用的融合装置，但发现了一些有价值的古代知识。', 'lightgray');
+                gameState.knowledge += 2;
+                gainExp(30);
+                clearChoices();
+                addChoice('返回上层', exploreUnderground);
+            }
+            updateUI();
+        }
+
+        // 训练属性
+        function trainAttribute() {
+            addStoryText('你开始进行艰苦的训练...');
+            
+            const randomAttr = ['strength', 'speed', 'knowledge', 'talent', 'luck'][Math.floor(Math.random() * 5)];
+            const increment = Math.floor(Math.random() * 3) + 1;
+            
+            gameState[randomAttr] += increment;
+            gameState.mp = Math.max(0, gameState.mp - 10);
+            
+            addStoryText(`训练完成！${randomAttr} +${increment}`, 'lightgreen');
+            gainExp(15);
+            updateUI();
+        }
+
+        // 休息恢复
+        function restoreHealth() {
+            const hpRestore = Math.min(gameState.maxHp - gameState.hp, 30);
+            const mpRestore = Math.min(gameState.maxMp - gameState.mp, 20);
+            
+            gameState.hp += hpRestore;
+            gameState.mp += mpRestore;
+            
+            addStoryText(`休息后恢复了 ${hpRestore} 点生命值和 ${mpRestore} 点魔法值。`, 'lightgreen');
+            updateUI();
+        }
+
+        // 制作装备
+        function openCrafting() {
+            addStoryText('你开始制作装备...');
+            
+            if (gameState.strength >= 20 && gameState.knowledge >= 15) {
+                addStoryText('你成功制作了一件强化装备！', 'gold');
+                const equipment = {
+                    name: "自制强化剑",
+                    type: "weapon",
+                    attack: 25,
+                    description: "用心制作的武器"
+                };
+                gameState.inventory.push(equipment);
+                gainExp(50);
+            } else if (gameState.elements.tech >= 30) {
+                addStoryText('你利用科技知识制作了一个辅助装置！', 'cyan');
+                const device = {
+                    name: "科技辅助器",
+                    type: "tech",
+                    techBonus: 25,
+                    description: "提升科技能力的装置"
+                };
+                gameState.inventory.push(device);
+                gainExp(40);
+            } else {
+                addStoryText('你的技能还不够熟练，只制作出了基础装备。', 'orange');
+                gameState.inventory.push({
+                    name: "粗制武器",
+                    type: "weapon",
+                    attack: 8
+                });
+                gainExp(20);
+            }
+            
+            updateUI();
+        }
+
+        // 学习魔法
+        function openMagicLearning() {
+            if (gameState.magicDisabled) {
+                addStoryText('在禁魔区内无法学习魔法！', 'red');
+                return;
+            }
+            
+            addStoryText('你尝试学习新的魔法...');
+            
+            if (gameState.talent >= 20) {
+                addStoryText('你成功领悟了新的魔法奥秘！', 'purple');
+                const elements = Object.keys(gameState.elements).filter(e => e !== 'tech');
+                const randomElement = elements[Math.floor(Math.random() * elements.length)];
+                gameState.elements[randomElement] += 15;
+                gainExp(60);
+            } else {
+                addStoryText('你对魔法有了更深的理解。', 'lightblue');
+                gameState.talent += 2;
+                gainExp(30);
+            }
+            
+            gameState.mp = Math.max(0, gameState.mp - 15);
+            updateUI();
+        }
+
+        // 保存游戏
+        function saveGame() {
+            const saveData = JSON.stringify(gameState);
+            const blob = new Blob([saveData], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'element_awakening_save.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            addStoryText('游戏已保存！', 'lightgreen');
+        }
+
+        // 读取存档
+        function loadGame() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const loadedState = JSON.parse(e.target.result);
+                            gameState = loadedState;
+                            updateUI();
+                            addStoryText('存档读取成功！', 'lightgreen');
+                        } catch (error) {
+                            addStoryText('存档文件格式错误！', 'red');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        // 初始化游戏
+        function initGame() {
+            updateUI();
+            addStoryText('欢迎来到元素觉醒的世界！');
+        }
+
+        // 游戏开始
+        initGame();
+    </script>
+</body>
+</html>
